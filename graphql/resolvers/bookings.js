@@ -9,7 +9,10 @@ const {
 } = require('./merge');
 
 module.exports = {
-    bookings: async () => {
+    bookings: async req => {
+        if (!req.authenticated) {
+            throw new Error('Unauthorized!')
+        }
         try {
             const bookings = await Booking.find();
             return bookings.map(booking => {
@@ -19,16 +22,22 @@ module.exports = {
             throw e;
         }
     },
-    bookEvent: async args => {
+    bookEvent: async (args, req) => {
+        if (!req.authenticated) {
+            throw new Error('Unauthorized!')
+        }
         const event = await Event.findById(args.eventId);
         const booking = new Booking({
-            user: '5e42b86890193b5da8398f86',
+            user: req.userId,
             event: event
         });
         const result = await booking.save();
         return formatBooking(result)
     },
-    cancelBooking: async args => {
+    cancelBooking: async (args, req) => {
+        if (!req.authenticated) {
+            throw new Error('Unauthorized!')
+        }
         try {
             const booking = await Booking.findById(args.bookingId).populate('event');
             const event = formatEvent(booking.event);
